@@ -3,20 +3,35 @@
 
     uv run python scripts/seed_demo.py
 
-T00 has nothing to seed. As you build content types, extend this so it creates:
-  - one admin and one editor (passwords read from .env, never hard-coded)
-  - a few posts and pages, at least one draft and one published
-
-The rubric expects this to run clean on a fresh clone with .env.example values
-(item E4), because the database itself is never committed.
+Creates one Admin (admin@example.test) and one Editor (editor@example.test),
+with passwords read from CMS_ADMIN_PASSWORD / CMS_EDITOR_PASSWORD, never
+hard-coded. Safe to run twice. T08 adds demo content.
 """
 from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app import settings  # noqa: E402
+from app.accounts import seed_users  # noqa: E402
+
+
+def load_dotenv(path: Path) -> None:
+    """Fill os.environ from .env without overriding real environment variables."""
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip())
 
 
 def main() -> int:
+    load_dotenv(Path(os.environ.get("CMS_ENV_FILE", settings.ROOT / ".env")))
     admin_pw = os.environ.get("CMS_ADMIN_PASSWORD")
     editor_pw = os.environ.get("CMS_EDITOR_PASSWORD")
     if not admin_pw or not editor_pw:
@@ -24,9 +39,9 @@ def main() -> int:
               "(copy .env.example).")
         return 1
 
-    # TODO (your tickets): create the users, then the demo content.
-    print("Nothing to seed yet: no content types exist. "
-          "Extend scripts/seed_demo.py as you build T01+.")
+    database = Path(os.environ.get("CMS_DATABASE", settings.DATABASE_PATH))
+    seed_users(database, admin_password=admin_pw, editor_password=editor_pw)
+    print(f"Seeded the Admin and Editor in {database}.")
     return 0
 
 

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <nav>
+    <a href="/admin">Dashboard</a>
+    {% if user.role == "admin" %}
+      <a href="/admin/pages">Pages</a>
+      <a href="/admin/users">Users</a>
+    {% endif %}
+    <form method="post" action="/logout" style="display:inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button type="submit">Sign out</button>
+    </form>
+  </nav>
+  {% block console %}{% endblock %}
+{% endblock %}

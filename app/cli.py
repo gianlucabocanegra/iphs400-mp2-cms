@@ -28,7 +28,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "serve":
         import uvicorn
 
-        uvicorn.run("app.main:app", port=args.port, reload=args.reload)
+        uvicorn.run("app.main:create_app", factory=True, port=args.port,
+                    reload=args.reload)
         return 0
 
     if args.command == "publish":

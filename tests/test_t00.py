@@ -5,10 +5,11 @@ door.
 """
 
 
-def test_admin_console_answers(client):
-    response = client.get("/admin")
+def test_admin_console_answers(client_as):
+    # T01 put the console behind login, so the front door is now "signed in".
+    response = client_as("admin").get("/admin")
     assert response.status_code == 200
-    assert "hello admin" in response.text.lower()
+    assert "dashboard" in response.text.lower()
 
 
 def test_public_home_answers(client):
