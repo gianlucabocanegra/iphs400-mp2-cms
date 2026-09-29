@@ -15,6 +15,21 @@ CREATE TABLE IF NOT EXISTS users (
     session_version INTEGER NOT NULL DEFAULT 0,
     created_at      TEXT    NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS posts (
+    id                INTEGER PRIMARY KEY,
+    kind              TEXT    NOT NULL CHECK (kind IN ('news', 'event', 'menu')),
+    title             TEXT    NOT NULL,
+    slug              TEXT    NOT NULL,
+    body_md           TEXT    NOT NULL DEFAULT '',
+    status            TEXT    NOT NULL DEFAULT 'draft'
+                              CHECK (status IN ('draft', 'published')),
+    author_id         INTEGER NOT NULL REFERENCES users (id),
+    created_at        TEXT    NOT NULL,
+    updated_at        TEXT    NOT NULL,
+    first_published_at TEXT,
+    UNIQUE (kind, slug)
+);
 """
 
 

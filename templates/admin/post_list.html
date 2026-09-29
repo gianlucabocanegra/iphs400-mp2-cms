@@ -1,0 +1,23 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>Posts</h1>
+  <p><a href="/admin/posts/new">New post</a></p>
+  {% if posts %}
+  <table>
+    <thead><tr><th>Title</th><th>Kind</th><th>Status</th><th>Author</th><th>Last updated (Lima)</th></tr></thead>
+    <tbody>
+    {% for p in posts %}
+      <tr>
+        <td><a href="/admin/posts/{{ p.id }}">{{ p.title }}</a></td>
+        <td>{{ kind_labels[p.kind] }}</td>
+        <td>{{ p.status | capitalize }}</td>
+        <td>{{ p.author_name }}</td>
+        <td>{{ p.updated_at | lima }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No posts yet.</p>
+  {% endif %}
+{% endblock %}

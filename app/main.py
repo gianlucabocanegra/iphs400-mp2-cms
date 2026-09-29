@@ -9,10 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from starlette.middleware.sessions import SessionMiddleware
 
-from app import auth, db, settings
+from app import auth, db, publish, settings
 from app.routes import auth as auth_routes
 from app.routes import console
 from app.web import templates
@@ -32,6 +32,11 @@ def create_app(database_path: Path | str | None = None) -> FastAPI:
     @app.exception_handler(auth.LoginRequired)
     def to_login(request: Request, exc: auth.LoginRequired):
         return RedirectResponse("/login", status_code=303)
+
+    @app.get("/style.css")
+    def stylesheet():
+        # Lets the console's Preview load the public stylesheet.
+        return Response(publish.CSS, media_type="text/css")
 
     @app.get("/")
     def public_home(request: Request):

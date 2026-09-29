@@ -1,0 +1,27 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>{{ title }}</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="{% if post.id %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    {% if post.id %}
+      <p>Kind: {{ kind_labels[post.kind] }} · Status: {{ post.status | capitalize }}</p>
+    {% else %}
+      <p><label>Kind
+        <select name="kind">
+          {% for value, label in kind_labels.items() %}
+            <option value="{{ value }}"{% if post.kind == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select></label></p>
+    {% endif %}
+    <p><label>Title <input type="text" name="title" value="{{ post.title }}" required></label></p>
+    <p><label>Slug <input type="text" name="slug" value="{{ post.slug }}"
+      {% if post.first_published_at %}readonly{% endif %}></label>
+      {% if not post.id %}<small>Leave blank to generate it from the title.</small>{% endif %}</p>
+    <p><label>Body (Markdown)<br>
+      <textarea name="body_md" rows="14" cols="70">{{ post.body_md }}</textarea></label></p>
+    <button type="submit">Save draft</button>
+    {% if post.id %}<a href="/admin/posts/{{ post.id }}/preview" target="_blank">Preview</a>{% endif %}
+    <a href="/admin/posts">Back to posts</a>
+  </form>
+{% endblock %}

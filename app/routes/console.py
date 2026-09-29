@@ -10,9 +10,12 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app import auth
+from app.routes import posts
 from app.web import templates
 
 router = APIRouter(prefix="/admin", dependencies=[Depends(auth.current_user)])
+# Before the catch-all 404 at the bottom of this file.
+router.include_router(posts.router)
 
 
 def page(request: Request, template: str, user: sqlite3.Row, title: str):
