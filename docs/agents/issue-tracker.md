@@ -27,7 +27,7 @@ GitHub shares one number space across issues and PRs, so a bare `#42` may be eit
 
 ## When a skill says "publish to the issue tracker"
 
-Create a GitHub issue.
+Create a GitHub issue. Apply a kind label at creation: `spec` for a spec issue (`to-spec`), `ticket` for a ticket issue (`to-tickets`). These are separate from the triage labels in `triage-labels.md`.
 
 ## When a skill says "fetch the relevant ticket"
 
