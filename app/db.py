@@ -30,6 +30,11 @@ CREATE TABLE IF NOT EXISTS posts (
     first_published_at TEXT,
     UNIQUE (kind, slug)
 );
+
+CREATE TABLE IF NOT EXISTS exports (
+    id     INTEGER PRIMARY KEY,
+    ran_at TEXT NOT NULL
+);
 """
 
 

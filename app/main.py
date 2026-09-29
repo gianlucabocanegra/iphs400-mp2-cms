@@ -42,7 +42,7 @@ def create_app(database_path: Path | str | None = None) -> FastAPI:
     def public_home(request: Request):
         return templates.TemplateResponse(
             request, "public/home.html",
-            {"title": settings.SITE_TITLE, "items": []},
+            {"title": settings.SITE_TITLE, "news": []},
         )
 
     app.include_router(auth_routes.router)

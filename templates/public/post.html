@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
   <article>
-    <p><small>{{ kind_label }}</small></p>
+    <p><small>{{ kind_label }}{% if date_label %} · {{ date_label }}{% endif %}</small></p>
     <h1>{{ post.title }}</h1>
     {{ body_html | safe }}
   </article>

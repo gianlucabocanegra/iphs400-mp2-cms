@@ -3,12 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}{{ title }}{% endblock %}</title>
+  <title>{% block title %}{{ page_title | default(title) }}{% endblock %}</title>
   <link rel="stylesheet" href="{{ css_path | default('style.css') }}">
 </head>
 <body>
-  <header><a href="{{ home_path | default('index.html') }}">{{ title }}</a></header>
+  <header>
+    <a href="{{ home_path | default('index.html') }}">{{ title }}</a>
+    {% if nav %}
+      <nav>{% for label, href in nav %}<a href="{{ href }}">{{ label }}</a> {% endfor %}</nav>
+    {% endif %}
+  </header>
   <main>{% block content %}{% endblock %}</main>
-  <footer><small>IPHS 400 Mini-Project #2</small></footer>
+  <footer><small>{{ title }}</small></footer>
 </body>
 </html>

@@ -5,7 +5,8 @@
   <form method="post" action="{% if post.id %}/admin/posts/{{ post.id }}{% else %}/admin/posts{% endif %}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
     {% if post.id %}
-      <p>Kind: {{ kind_labels[post.kind] }} · Status: {{ post.status | capitalize }}</p>
+      <p>Kind: {{ kind_labels[post.kind] }} · Status: {{ post.status | capitalize }}
+        {% if post.first_published_at %}· First published (Lima): {{ post.first_published_at | lima }}{% endif %}</p>
     {% else %}
       <p><label>Kind
         <select name="kind">
@@ -24,4 +25,10 @@
     {% if post.id %}<a href="/admin/posts/{{ post.id }}/preview" target="_blank">Preview</a>{% endif %}
     <a href="/admin/posts">Back to posts</a>
   </form>
+  {% if post.id %}
+    <form method="post" action="/admin/posts/{{ post.id }}/{% if post.status == 'published' %}unpublish{% else %}publish{% endif %}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <button type="submit">{% if post.status == 'published' %}Unpublish{% else %}Publish{% endif %}</button>
+    </form>
+  {% endif %}
 {% endblock %}

@@ -85,6 +85,18 @@ def save_post(request: Request, post_id: int, title: str = Form(""),
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
 
+@router.post("/{post_id}/publish")
+def publish_post(post_id: int, conn: sqlite3.Connection = Depends(auth.get_db)):
+    content.publish_post(conn, load(conn, post_id))
+    return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
+
+
+@router.post("/{post_id}/unpublish")
+def unpublish_post(post_id: int, conn: sqlite3.Connection = Depends(auth.get_db)):
+    content.unpublish_post(conn, load(conn, post_id))
+    return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
+
+
 @router.get("/{post_id}/preview")
 def preview(request: Request, post_id: int,
             conn: sqlite3.Connection = Depends(auth.get_db)):
@@ -92,6 +104,6 @@ def preview(request: Request, post_id: int,
     return templates.TemplateResponse(
         request, "public/post.html",
         {"title": post["title"], "lang": "es", "css_path": "/style.css",
-         "home_path": "/", "post": post,
+         "home_path": "/", "post": post, "date_label": None,
          "kind_label": KIND_LABELS_ES[post["kind"]],
          "body_html": render_markdown(post["body_md"])})

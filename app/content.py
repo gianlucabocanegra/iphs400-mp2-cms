@@ -90,3 +90,35 @@ def list_posts(conn: sqlite3.Connection) -> list[sqlite3.Row]:
         "SELECT posts.*, users.name AS author_name FROM posts "
         "JOIN users ON users.id = posts.author_id "
         "ORDER BY posts.updated_at DESC, posts.id DESC").fetchall()
+
+
+def publish_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
+    """Mark as Published. The first-published time is set once and never cleared."""
+    now = utc_now()
+    conn.execute("UPDATE posts SET status = 'published', updated_at = ?, "
+                 "first_published_at = coalesce(first_published_at, ?) WHERE id = ?",
+                 (now, now, post["id"]))
+    conn.commit()
+
+
+def unpublish_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
+    """Back to Draft. first_published_at stays, so the Slug stays locked."""
+    conn.execute("UPDATE posts SET status = 'draft', updated_at = ? WHERE id = ?",
+                 (utc_now(), post["id"]))
+    conn.commit()
+
+
+def published_posts(conn: sqlite3.Connection, kind: str | None = None,
+                    limit: int | None = None) -> list[sqlite3.Row]:
+    """Published Posts, newest first. Selects no Author: the public site has none."""
+    sql = ("SELECT id, kind, title, slug, body_md, first_published_at FROM posts "
+           "WHERE status = 'published'")
+    args: list = []
+    if kind:
+        sql += " AND kind = ?"
+        args.append(kind)
+    sql += " ORDER BY first_published_at DESC, id DESC"
+    if limit:
+        sql += " LIMIT ?"
+        args.append(limit)
+    return conn.execute(sql, args).fetchall()

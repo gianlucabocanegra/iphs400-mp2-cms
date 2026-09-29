@@ -1,9 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>{{ title }}</h1>
-  {% if items %}
-    <ul>{% for item in items %}<li><a href="{{ item.href }}">{{ item.title }}</a></li>{% endfor %}</ul>
-  {% else %}
-    <p>Nothing published yet.</p>
-  {% endif %}
+  <section>
+    <h1>Últimas noticias</h1>
+    {% if news %}
+      <ul>{% for item in news %}
+        <li><a href="{{ item.href }}">{{ item.title }}</a> <small>{{ item.date }}</small></li>
+      {% endfor %}</ul>
+    {% else %}
+      <p>Aún no hay noticias publicadas.</p>
+    {% endif %}
+  </section>
 {% endblock %}

@@ -17,6 +17,7 @@ import re
 import pytest
 from fastapi.testclient import TestClient
 
+from app import settings
 from app.accounts import seed_users
 from app.main import create_app
 
@@ -43,6 +44,12 @@ def db_path(tmp_path):
     seed_users(path, admin_password=DEMO_USERS["admin"]["password"],
                editor_password=DEMO_USERS["editor"]["password"])
     return path
+
+
+@pytest.fixture(autouse=True)
+def _configured_database(db_path, monkeypatch):
+    """render_site reads the configured database; point it at this test's own."""
+    monkeypatch.setattr(settings, "DATABASE_PATH", db_path)
 
 
 @pytest.fixture
