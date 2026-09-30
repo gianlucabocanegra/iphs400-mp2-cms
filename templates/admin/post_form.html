@@ -22,11 +22,11 @@
     <p><label>Body (Markdown)<br>
       <textarea name="body_md" rows="14" cols="70">{{ post.body_md }}</textarea></label></p>
     <button type="submit">Save draft</button>
-    {% if post.id %}<a href="/admin/posts/{{ post.id }}/preview" target="_blank">Preview</a>{% endif %}
-    <a href="/admin/posts">Back to posts</a>
+    {% if post.id %}<a href="{{ path_for('preview', post_id=post.id) }}" target="_blank">Preview</a>{% endif %}
+    <a href="{{ path_for('post_list') }}">Back to posts</a>
   </form>
   {% if post.id %}
-    <form method="post" action="/admin/posts/{{ post.id }}/{% if post.status == 'published' %}unpublish{% else %}publish{% endif %}">
+    <form method="post" action="{{ path_for('unpublish_post' if post.status == 'published' else 'publish_post', post_id=post.id) }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
       <button type="submit">{% if post.status == 'published' %}Unpublish{% else %}Publish{% endif %}</button>
     </form>
