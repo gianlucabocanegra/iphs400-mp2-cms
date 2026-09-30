@@ -12,14 +12,18 @@ one line:
 """
 from __future__ import annotations
 
+import os
 import re
 
 import pytest
 from fastapi.testclient import TestClient
 
-from app import settings
-from app.accounts import seed_users
-from app.main import create_app
+# A developer's real .env must not change test behaviour.
+os.environ.setdefault("CMS_ENV_FILE", os.devnull)
+
+from app import settings  # noqa: E402
+from app.accounts import seed_users  # noqa: E402
+from app.main import create_app  # noqa: E402
 
 # Matches scripts/seed_demo.py. Passwords come from the environment there; in
 # tests they are fixed and meaningless.

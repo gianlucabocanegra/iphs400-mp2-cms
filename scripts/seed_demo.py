@@ -19,19 +19,7 @@ from app import settings  # noqa: E402
 from app.accounts import seed_users  # noqa: E402
 
 
-def load_dotenv(path: Path) -> None:
-    """Fill os.environ from .env without overriding real environment variables."""
-    if not path.exists():
-        return
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            key, _, value = line.partition("=")
-            os.environ.setdefault(key.strip(), value.strip())
-
-
 def main() -> int:
-    load_dotenv(Path(os.environ.get("CMS_ENV_FILE", settings.ROOT / ".env")))
     admin_pw = os.environ.get("CMS_ADMIN_PASSWORD")
     editor_pw = os.environ.get("CMS_EDITOR_PASSWORD")
     if not admin_pw or not editor_pw:

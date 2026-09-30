@@ -9,13 +9,24 @@ Do not fork: a fork arrives without an Issues tab, and your tickets live in Issu
 2. `docs/mp2-grading-rubric_20260922.md` — how you are graded. Read it **before** you build.
 3. `docs/mp2-setup_context-threshold-hook_20260922.md` — Exercise A, in Part 4 of the manual.
 
-## Run it
+## Live URL
+
+https://gianlucabocanegra.github.io/iphs400-mp2-cms/
+
+## Run locally
+
+Needs [uv](https://docs.astral.sh/uv/) and Python 3.12+.
 
 ```bash
 uv sync
-cp .env.example .env
-uv run cms serve        # then open http://localhost:8000/admin  -> "T00: hello admin"
+cp .env.example .env    # then edit .env: set CMS_ADMIN_PASSWORD and CMS_EDITOR_PASSWORD
+uv run python scripts/seed_demo.py   # creates the Admin and Editor users
+uv run cms serve        # then open http://localhost:8000/admin and sign in
 ```
+
+Sign in as `admin@example.test` or `editor@example.test` with the passwords you set.
+To put content on the public site: `uv run cms publish` writes `site/`, and
+`uv run cms deploy` pushes it to the `gh-pages` branch.
 
 ## What is here
 
