@@ -1,6 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
   <section>
+    <h1>Menú actual</h1>
+    {% if menu %}
+      <h2><a href="{{ menu.href }}">{{ menu.title }}</a></h2>
+      {% if menu.date %}<p><small>{{ menu.date }}</small></p>{% endif %}
+      {{ menu.body_html | safe }}
+    {% else %}
+      <p>Aún no hay un menú publicado.</p>
+    {% endif %}
+  </section>
+  <section>
+    <h1>Próximos eventos</h1>
+    {% if events %}
+      <ul>{% for item in events %}
+        <li><strong>{{ item.date }}</strong> <a href="{{ item.href }}">{{ item.title }}</a></li>
+      {% endfor %}</ul>
+    {% else %}
+      <p>No hay eventos próximos.</p>
+    {% endif %}
+  </section>
+  <section>
     <h1>Últimas noticias</h1>
     {% if news %}
       <ul>{% for item in news %}

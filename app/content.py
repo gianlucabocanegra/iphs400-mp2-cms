@@ -4,6 +4,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import unicodedata
+from datetime import date, time
 
 from app.timeutil import utc_now
 
@@ -53,31 +54,64 @@ def _clean_title(title: str) -> str:
     return title
 
 
+def _parsed(value: str, parse, label: str):
+    try:
+        return parse(value)
+    except ValueError:
+        raise PostError(f"The {label} isn’t valid.") from None
+
+
+def _clean_event(kind: str, start_date: str, start_time: str,
+                 end_date: str) -> tuple[str | None, str | None, str | None]:
+    """The Event date fields as stored. Only Events have them, and Events need a start date."""
+    typed = [v.strip() for v in (start_date, start_time, end_date)]
+    if kind != "event":
+        if any(typed):
+            raise PostError("Event dates only apply to Events.")
+        return None, None, None
+    start_date, start_time, end_date = typed
+    if not start_date:
+        raise PostError("An Event needs a start date.")
+    start = _parsed(start_date, date.fromisoformat, "start date")
+    at = _parsed(start_time, time.fromisoformat, "start time") if start_time else None
+    end = _parsed(end_date, date.fromisoformat, "end date") if end_date else None
+    if end and end < start:
+        raise PostError("The end date can’t be earlier than the start date.")
+    return (start.isoformat(), at.strftime("%H:%M") if at else None,
+            end.isoformat() if end else None)
+
+
 def create_post(conn: sqlite3.Connection, *, kind: str, title: str, slug: str,
-                body_md: str, author_id: int) -> int:
+                body_md: str, author_id: int, event_start_date: str = "",
+                event_start_time: str = "", event_end_date: str = "") -> int:
     if kind not in KINDS:
         raise PostError("Choose News, Event or Menu.")
     title = _clean_title(title)
+    event = _clean_event(kind, event_start_date, event_start_time, event_end_date)
     slug = _slug_for(conn, kind, title, slug)
     now = utc_now()
     cur = conn.execute(
         "INSERT INTO posts (kind, title, slug, body_md, author_id, created_at, "
-        "updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (kind, title, slug, body_md, author_id, now, now))
+        "updated_at, event_start_date, event_start_time, event_end_date) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (kind, title, slug, body_md, author_id, now, now, *event))
     conn.commit()
     return cur.lastrowid
 
 
 def update_post(conn: sqlite3.Connection, post: sqlite3.Row, *, title: str,
-                slug: str, body_md: str) -> None:
+                slug: str, body_md: str, event_start_date: str = "",
+                event_start_time: str = "", event_end_date: str = "") -> None:
     """Kind and Author never change. The Slug is locked once first published."""
     title = _clean_title(title)
+    event = _clean_event(post["kind"], event_start_date, event_start_time, event_end_date)
     if post["first_published_at"]:
         slug = post["slug"]
     else:
         slug = _slug_for(conn, post["kind"], title, slug or post["slug"], post["id"])
-    conn.execute("UPDATE posts SET title = ?, slug = ?, body_md = ?, updated_at = ? "
-                 "WHERE id = ?", (title, slug, body_md, utc_now(), post["id"]))
+    conn.execute("UPDATE posts SET title = ?, slug = ?, body_md = ?, updated_at = ?, "
+                 "event_start_date = ?, event_start_time = ?, event_end_date = ? "
+                 "WHERE id = ?", (title, slug, body_md, utc_now(), *event, post["id"]))
     conn.commit()
 
 
@@ -111,7 +145,8 @@ def unpublish_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
 def published_posts(conn: sqlite3.Connection, kind: str | None = None,
                     limit: int | None = None) -> list[sqlite3.Row]:
     """Published Posts, newest first. Selects no Author: the public site has none."""
-    sql = ("SELECT id, kind, title, slug, body_md, first_published_at FROM posts "
+    sql = ("SELECT id, kind, title, slug, body_md, first_published_at, "
+           "event_start_date, event_start_time, event_end_date FROM posts "
            "WHERE status = 'published'")
     args: list = []
     if kind:
@@ -122,3 +157,32 @@ def published_posts(conn: sqlite3.Connection, kind: str | None = None,
         sql += " LIMIT ?"
         args.append(limit)
     return conn.execute(sql, args).fetchall()
+
+
+def published_events(conn: sqlite3.Connection,
+                     export_date: date) -> tuple[list[sqlite3.Row], list[sqlite3.Row]]:
+    """(Upcoming, past) Published Events.
+
+    Upcoming: the end date, or the start date if there is none, is on or after
+    the export date. Upcoming is soonest first; past is most recent first.
+    """
+    today = export_date.isoformat()
+
+    def last_day(event) -> str:
+        return event["event_end_date"] or event["event_start_date"] or ""
+
+    def starts(event) -> tuple:
+        return (event["event_start_date"] or "", event["event_start_time"] or "",
+                event["id"])
+
+    events = published_posts(conn, "event")
+    upcoming = sorted((e for e in events if last_day(e) >= today), key=starts)
+    past = sorted((e for e in events if last_day(e) < today),
+                  key=lambda e: (last_day(e), *starts(e)), reverse=True)
+    return upcoming, past
+
+
+def published_menus(conn: sqlite3.Connection) -> tuple[sqlite3.Row | None, list[sqlite3.Row]]:
+    """(Current menu, Menu archive): the newest Published Menu, then all the others."""
+    menus = published_posts(conn, "menu")
+    return (menus[0] if menus else None), menus[1:]

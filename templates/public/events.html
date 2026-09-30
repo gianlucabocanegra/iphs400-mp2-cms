@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Eventos</h1>
+  <section>
+    <h2>Próximos eventos</h2>
+    {% if upcoming %}
+      <ul>{% for item in upcoming %}
+        <li><strong>{{ item.date }}</strong> <a href="{{ item.href }}">{{ item.title }}</a></li>
+      {% endfor %}</ul>
+    {% else %}
+      <p>No hay eventos próximos.</p>
+    {% endif %}
+  </section>
+  <section>
+    <h2>Eventos pasados</h2>
+    {% if past %}
+      <ul>{% for item in past %}
+        <li><strong>{{ item.date }}</strong> <a href="{{ item.href }}">{{ item.title }}</a></li>
+      {% endfor %}</ul>
+    {% else %}
+      <p>No hay eventos pasados.</p>
+    {% endif %}
+  </section>
+{% endblock %}

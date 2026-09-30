@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 
 from app import auth, content
 from app.markdown import render_markdown
+from app.timeutil import fecha_evento
 from app.web import templates
 
 router = APIRouter(prefix="/posts")
@@ -45,20 +46,25 @@ def post_list(request: Request, user: sqlite3.Row = Depends(auth.current_user),
 @router.get("/new")
 def new_post(request: Request, user: sqlite3.Row = Depends(auth.current_user)):
     return form_page(request, user, {"kind": "news", "title": "", "slug": "",
-                                     "body_md": ""})
+                                     "body_md": "", "event_start_date": "",
+                                     "event_start_time": "", "event_end_date": ""})
 
 
 @router.post("")
 def create_post(request: Request, kind: str = Form(""), title: str = Form(""),
                 slug: str = Form(""), body_md: str = Form(""),
+                event_start_date: str = Form(""), event_start_time: str = Form(""),
+                event_end_date: str = Form(""),
                 user: sqlite3.Row = Depends(auth.current_user),
                 conn: sqlite3.Connection = Depends(auth.get_db)):
+    event = dict(event_start_date=event_start_date, event_start_time=event_start_time,
+                 event_end_date=event_end_date)
     try:
         post_id = content.create_post(conn, kind=kind, title=title, slug=slug,
-                                      body_md=body_md, author_id=user["id"])
+                                      body_md=body_md, author_id=user["id"], **event)
     except content.PostError as exc:
         return form_page(request, user, {"kind": kind, "title": title,
-                                         "slug": slug, "body_md": body_md},
+                                         "slug": slug, "body_md": body_md, **event},
                          error=str(exc), status_code=422)
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
@@ -73,14 +79,18 @@ def edit_post(request: Request, post_id: int,
 @router.post("/{post_id}")
 def save_post(request: Request, post_id: int, title: str = Form(""),
               slug: str = Form(""), body_md: str = Form(""),
+              event_start_date: str = Form(""), event_start_time: str = Form(""),
+              event_end_date: str = Form(""),
               user: sqlite3.Row = Depends(auth.current_user),
               conn: sqlite3.Connection = Depends(auth.get_db)):
     post = load(conn, post_id)
+    event = dict(event_start_date=event_start_date, event_start_time=event_start_time,
+                 event_end_date=event_end_date)
     try:
-        content.update_post(conn, post, title=title, slug=slug, body_md=body_md)
+        content.update_post(conn, post, title=title, slug=slug, body_md=body_md, **event)
     except content.PostError as exc:
         return form_page(request, user, {**dict(post), "title": title,
-                                         "slug": slug, "body_md": body_md},
+                                         "slug": slug, "body_md": body_md, **event},
                          error=str(exc), status_code=422)
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
@@ -105,5 +115,7 @@ def preview(request: Request, post_id: int,
         request, "public/post.html",
         {"title": post["title"], "lang": "es", "css_path": "/style.css",
          "home_path": "/", "post": post, "date_label": None,
+         "event_label": fecha_evento(post["event_start_date"], post["event_start_time"],
+                                     post["event_end_date"]),
          "kind_label": KIND_LABELS_ES[post["kind"]],
          "body_html": render_markdown(post["body_md"])})

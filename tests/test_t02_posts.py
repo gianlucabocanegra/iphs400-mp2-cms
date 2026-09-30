@@ -10,9 +10,11 @@ from tests.conftest import csrf_from
 def save_post(client, *, title="Menú de la semana", kind="menu", body="Hola",
               slug=""):
     token = csrf_from(client.get("/admin/posts/new"))
+    # Since T04 an Event needs a start date; News and Menus must not have one.
+    event = {"event_start_date": "2026-10-10"} if kind == "event" else {}
     return client.post("/admin/posts", data={
         "csrf_token": token, "kind": kind, "title": title, "slug": slug,
-        "body_md": body}, follow_redirects=False)
+        "body_md": body, **event}, follow_redirects=False)
 
 
 def edit_post(client, location, **fields):

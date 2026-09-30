@@ -32,3 +32,24 @@ def fecha(iso: str | None) -> str:
         return ""
     d = datetime.fromisoformat(iso).astimezone(LIMA)
     return f"{d.day} de {MONTHS_ES[d.month - 1]} de {d.year}"
+
+
+def fecha_dia(day: str) -> str:
+    """A stored Lima calendar date ('2026-10-03') as '3 de octubre de 2026'."""
+    d = date.fromisoformat(day)
+    return f"{d.day} de {MONTHS_ES[d.month - 1]} de {d.year}"
+
+
+def fecha_evento(start: str | None, start_time: str | None, end: str | None) -> str:
+    """An Event date: '3 de octubre de 2026, 20:00 al 4 de octubre de 2026'.
+
+    Event dates and times are already Lima local, so nothing is converted.
+    """
+    if not start:
+        return ""
+    label = fecha_dia(start)
+    if start_time:
+        label += f", {start_time}"
+    if end and end != start:
+        label += f" al {fecha_dia(end)}"
+    return label

@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS posts (
     created_at        TEXT    NOT NULL,
     updated_at        TEXT    NOT NULL,
     first_published_at TEXT,
+    event_start_date  TEXT,
+    event_start_time  TEXT,
+    event_end_date    TEXT,
     UNIQUE (kind, slug)
 );
 
@@ -46,10 +49,18 @@ def connect(path: Path | str) -> sqlite3.Connection:
     return conn
 
 
+EVENT_COLUMNS = ("event_start_date", "event_start_time", "event_end_date")
+
+
 def init_db(path: Path | str) -> None:
     conn = connect(path)
     try:
         conn.executescript(SCHEMA)
+        # A database made before T04 has no Event date columns.
+        have = {row["name"] for row in conn.execute("PRAGMA table_info(posts)")}
+        for column in EVENT_COLUMNS:
+            if column not in have:
+                conn.execute(f"ALTER TABLE posts ADD COLUMN {column} TEXT")
         conn.commit()
     finally:
         conn.close()
