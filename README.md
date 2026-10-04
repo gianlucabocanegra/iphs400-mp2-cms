@@ -19,12 +19,19 @@ Needs [uv](https://docs.astral.sh/uv/) and Python 3.12+.
 
 ```bash
 uv sync
-cp .env.example .env    # then edit .env: set CMS_ADMIN_PASSWORD and CMS_EDITOR_PASSWORD
-uv run python scripts/seed_demo.py   # creates the Admin and Editor users
+cp .env.example .env    # works as is for a local try-out (see below)
+uv run python scripts/seed_demo.py   # creates the Admin, the Editor and demo content
 uv run cms serve        # then open http://localhost:8000/admin and sign in
 ```
 
-Sign in as `admin@example.test` or `editor@example.test` with the passwords you set.
+Sign in as `admin@example.test` or `editor@example.test` with the passwords in `.env`
+(`CMS_ADMIN_PASSWORD`, `CMS_EDITOR_PASSWORD`; the `.env.example` values work locally).
+
+`.env.example` sets `CMS_ENV=local`, which lets the console start with the public
+placeholder `CMS_SECRET_KEY` and prints a warning. That is only for your own computer.
+For anything else, remove `CMS_ENV`, set a real key
+(`python3 -c 'import secrets; print(secrets.token_hex(32))'`) and change the passwords;
+without `CMS_ENV=local` the console refuses to start on an empty or placeholder key.
 To put content on the public site: `uv run cms publish` writes `site/`, and
 `uv run cms deploy` pushes it to the `gh-pages` branch.
 
