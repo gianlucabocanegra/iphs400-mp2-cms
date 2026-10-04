@@ -1,0 +1,27 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>{{ title }}</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="{% if page.id %}{{ path_for('save_page', page_id=page.id) }}{% else %}{{ path_for('create_page') }}{% endif %}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    {% if page.id %}
+      <p>Status: {{ page.status | capitalize }}
+        {% if page.first_published_at %}· First published (Lima): {{ page.first_published_at | lima }}{% endif %}</p>
+    {% endif %}
+    <p><label>Title <input type="text" name="title" value="{{ page.title }}" required></label></p>
+    <p><label>Slug <input type="text" name="slug" value="{{ page.slug }}"
+      {% if page.first_published_at %}readonly{% endif %}></label>
+      {% if not page.id %}<small>Leave blank to generate it from the title.</small>{% endif %}</p>
+    <p><label>Navigation order <input type="number" name="nav_order" value="{{ page.nav_order }}"></label>
+      <small>Lower numbers come first; ties are sorted by title.</small></p>
+    <p><label>Body (Markdown)<br>
+      <textarea name="body_md" rows="14" cols="70">{{ page.body_md }}</textarea></label></p>
+    <button type="submit">{% if page.status == 'published' %}Save changes{% else %}Save draft{% endif %}</button>
+    {% if page.id %}
+      <button type="submit" formaction="{{ path_for('unpublish_page' if page.status == 'published' else 'publish_page', page_id=page.id) }}">{% if page.status == 'published' %}Unpublish{% else %}Publish{% endif %}</button>
+      <button type="submit" formaction="{{ path_for('delete_page', page_id=page.id) }}">Delete</button>
+      <a href="{{ path_for('preview_page', page_id=page.id) }}" target="_blank">Preview</a>
+    {% endif %}
+    <a href="{{ path_for('page_list') }}">Back to pages</a>
+  </form>
+{% endblock %}

@@ -166,14 +166,14 @@ def delete_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
 
 
 def changes_not_live(conn: sqlite3.Connection) -> int:
-    """Changes Members can't see yet: Posts touched since the last Export, plus
-    Live Posts deleted since then. Before any Export, every Published Post counts."""
+    """Changes Members can't see yet: Posts and Pages touched since the last Export, plus
+    Live ones deleted since then. Before any Export, every Published item counts."""
     last = conn.execute("SELECT max(ran_at) FROM exports").fetchone()[0]
     if last is None:
-        return conn.execute("SELECT count(*) FROM posts WHERE status = 'published'"
-                            ).fetchone()[0]
-    touched = conn.execute("SELECT count(*) FROM posts WHERE updated_at > ?",
-                           (last,)).fetchone()[0]
+        return sum(conn.execute(f"SELECT count(*) FROM {table} WHERE status = 'published'"
+                                ).fetchone()[0] for table in ("posts", "pages"))
+    touched = sum(conn.execute(f"SELECT count(*) FROM {table} WHERE updated_at > ?",
+                               (last,)).fetchone()[0] for table in ("posts", "pages"))
     deleted = conn.execute("SELECT count(*) FROM deleted_published WHERE deleted_at > ?",
                            (last,)).fetchone()[0]
     return touched + deleted

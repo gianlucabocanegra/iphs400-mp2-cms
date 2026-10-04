@@ -85,8 +85,10 @@ def confirmation(request: Request, user: sqlite3.Row, post: sqlite3.Row, *, acti
     """
     return templates.TemplateResponse(
         request, "admin/confirm.html",
-        {"title": heading, "user": user, "post": post, "summary": summary,
-         "pending": pending or {}, "action": action, "button": button,
+        {"title": heading, "user": user, "summary": summary,
+         "pending": pending or {}, "button": button,
+         "action_url": request.app.url_path_for(action, post_id=post["id"]),
+         "cancel_url": request.app.url_path_for("back_to_editor", post_id=post["id"]),
          "preview": preview and article_context(preview)})
 
 

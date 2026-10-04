@@ -34,12 +34,26 @@ CREATE TABLE IF NOT EXISTS posts (
     UNIQUE (kind, slug)
 );
 
+CREATE TABLE IF NOT EXISTS pages (
+    id                 INTEGER PRIMARY KEY,
+    title              TEXT    NOT NULL,
+    slug               TEXT    NOT NULL UNIQUE,
+    body_md            TEXT    NOT NULL DEFAULT '',
+    status             TEXT    NOT NULL DEFAULT 'draft'
+                               CHECK (status IN ('draft', 'published')),
+    nav_order          INTEGER NOT NULL DEFAULT 0,
+    author_id          INTEGER NOT NULL REFERENCES users (id),
+    created_at         TEXT    NOT NULL,
+    updated_at         TEXT    NOT NULL,
+    first_published_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS exports (
     id     INTEGER PRIMARY KEY,
     ran_at TEXT NOT NULL
 );
 
--- One row per Post that had been Published and was then deleted. Counted as a
+-- One row per Post or Page that had been Published and was then deleted. Counted as a
 -- change not yet Live until the next Export.
 CREATE TABLE IF NOT EXISTS deleted_published (
     id         INTEGER PRIMARY KEY,

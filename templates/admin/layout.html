@@ -4,7 +4,7 @@
     <a href="{{ path_for('dashboard') }}">Dashboard</a>
     <a href="{{ path_for('post_list') }}">Posts</a>
     {% if user.role == "admin" %}
-      <a href="{{ path_for('pages') }}">Pages</a>
+      <a href="{{ path_for('page_list') }}">Pages</a>
       <a href="{{ path_for('users') }}">Users</a>
     {% endif %}
     <form method="post" action="{{ path_for('logout') }}" style="display:inline">

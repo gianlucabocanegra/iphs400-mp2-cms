@@ -14,7 +14,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from app import content, db, settings
+from app import content, db, pages as page_store, settings
 from app.markdown import render_markdown
 from app.timeutil import fecha, fecha_evento, today_lima, utc_now
 
@@ -64,7 +64,7 @@ def _link(post, root: str) -> dict:
 
 
 def render_site(out: Path | None = None, export_date: date | None = None) -> Path:
-    """Write every Published Post into `out` and record the Export.
+    """Write every Published Post and Page into `out` and record the Export.
 
     `export_date` (a Lima date) is what Upcoming is measured against from T04 on.
     """
@@ -77,6 +77,7 @@ def render_site(out: Path | None = None, export_date: date | None = None) -> Pat
         posts = content.published_posts(conn)
         upcoming, past = content.published_events(conn, export_date)
         current_menu, archive = content.published_menus(conn)
+        pages = page_store.published_pages(conn)
     finally:
         conn.close()
 
@@ -90,7 +91,8 @@ def render_site(out: Path | None = None, export_date: date | None = None) -> Pat
         nav = [("Inicio", f"{root}index.html"),
                ("Noticias", f"{root}noticias/index.html"),
                ("Eventos", f"{root}eventos/index.html"),
-               ("Menús anteriores", f"{root}menus/index.html")]
+               ("Menús anteriores", f"{root}menus/index.html"),
+               *((p["title"], f"{root}{p['slug']}.html") for p in pages)]
         return env.get_template(template).render(
             title=settings.SITE_TITLE, lang="es", nav=nav, css_path=f"{root}style.css",
             home_path=f"{root}index.html", **ctx)
@@ -122,6 +124,11 @@ def render_site(out: Path | None = None, export_date: date | None = None) -> Pat
             event_label=_event_label(p) if event else "",
             date_label="" if event else fecha(p["first_published_at"]),
             body_html=render_markdown(p["body_md"])))
+
+    for p in pages:
+        _write(out, f"{p['slug']}.html", page(
+            "public/post.html", 0, page_title=p["title"], post=p, kind_label="",
+            event_label="", date_label="", body_html=render_markdown(p["body_md"])))
 
     conn = db.connect(settings.DATABASE_PATH)
     try:

@@ -2,13 +2,13 @@
 {% block console %}
   <h1>{{ title }}</h1>
   <ul>{% for line in summary %}<li>{{ line }}</li>{% endfor %}</ul>
-  <form method="post" action="{{ path_for(action, post_id=post.id) }}">
+  <form method="post" action="{{ action_url }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
     {% for name, value in pending.items() %}
     <input type="hidden" name="{{ name }}" value="{{ value }}">
     {% endfor %}
     <button type="submit" name="confirm" value="confirm">{{ button }}</button>
-    <button type="submit" formaction="{{ path_for('back_to_editor', post_id=post.id) }}" name="cancel" value="cancel">Cancel</button>
+    <button type="submit" formaction="{{ cancel_url }}" name="cancel" value="cancel">Cancel</button>
   </form>
   {% if preview %}
   <h2>Preview, as Members will see it</h2>
