@@ -181,3 +181,17 @@ def test_preview_drops_images_that_are_not_http_or_https(client_as):
     location = save_post(editor, body=body).headers["location"]
     html = editor.get(f"{location}/preview").text
     assert "src=" not in html
+
+
+def test_an_event_handler_attribute_is_stripped_from_preview_and_export(client_as, tmp_path):
+    from tests.test_t03_publish_export import export, publish
+    body = "Hola <img src=x onerror=alert(1)>\n\n![foto](https://example.com/foto.png)"
+    editor = client_as("editor")
+    location = save_post(editor, body=body).headers["location"]
+    preview = editor.get(f"{location}/preview").text
+    assert "onerror" not in preview and "alert(1)" not in preview
+    assert '<img src="https://example.com/foto.png"' in preview  # real images still work
+
+    publish(editor, kind="news", title="Imagen rota", body=body)
+    page = (export(tmp_path) / "noticias" / "imagen-rota.html").read_text()
+    assert "onerror" not in page and "alert(1)" not in page

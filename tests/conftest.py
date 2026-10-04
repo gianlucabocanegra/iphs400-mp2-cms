@@ -20,6 +20,8 @@ from fastapi.testclient import TestClient
 
 # A developer's real .env must not change test behaviour.
 os.environ.setdefault("CMS_ENV_FILE", os.devnull)
+# The app refuses to start without a real secret key; tests bring their own.
+os.environ["CMS_SECRET_KEY"] = "test-only-secret-key-not-used-anywhere-else"
 
 from app import settings  # noqa: E402
 from app.accounts import seed_users  # noqa: E402

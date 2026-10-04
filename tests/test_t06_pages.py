@@ -284,3 +284,14 @@ def test_a_page_change_counts_as_not_yet_live_until_the_next_export(client_as, t
     assert not_live(admin) == 1
     export(tmp_path)
     assert not_live(admin) == 0
+
+
+def test_a_page_post_without_a_csrf_token_is_refused(client_as):
+    admin = client_as("admin")
+    location = new_page(admin)
+    form = {"title": "Reglamento", "slug": "", "body_md": "x", "nav_order": "0"}
+    assert admin.post("/admin/pages", data=form).status_code == 403
+    assert admin.post(location, data=form).status_code == 403
+    assert admin.post(f"{location}/publish", data=form).status_code == 403
+    assert admin.post(f"{location}/delete", data=form).status_code == 403
+    assert admin.get(location).status_code == 200  # nothing was deleted

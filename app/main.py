@@ -25,7 +25,7 @@ def create_app(database_path: Path | str | None = None) -> FastAPI:
     app = FastAPI(title="IPHS 400 MP2 CMS",
                   dependencies=[Depends(auth.csrf_protect)])
     app.state.db_path = db_path
-    app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY,
+    app.add_middleware(SessionMiddleware, secret_key=settings.check_secret_key(settings.SECRET_KEY),
                        session_cookie="cms_session", same_site="lax",
                        max_age=8 * 60 * 60)
 

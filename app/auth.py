@@ -42,6 +42,8 @@ def csrf_token(request: Request) -> str:
 async def csrf_protect(request: Request) -> None:
     if request.method in SAFE_METHODS:
         return
+    if request.url.path.startswith("/admin") and not request.session.get("user_id"):
+        raise LoginRequired()  # a signed-out visitor is sent to login, not told "bad token"
     sent = request.headers.get("x-csrf-token")
     if sent is None:
         sent = (await request.form()).get("csrf_token")
