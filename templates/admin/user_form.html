@@ -1,0 +1,19 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>{{ title }}</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ path_for('create_user') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    <p><label>Name <input type="text" name="name" value="{{ form.name }}" required></label></p>
+    <p><label>Email <input type="email" name="email" value="{{ form.email }}" required></label></p>
+    <p><label>Role
+      <select name="role">
+        <option value="editor" {% if form.role != 'admin' %}selected{% endif %}>Editor</option>
+        <option value="admin" {% if form.role == 'admin' %}selected{% endif %}>Admin</option>
+      </select></label></p>
+    <p><label>Initial password <input type="password" name="password" required autocomplete="new-password"></label>
+      <small>At least 8 characters. Share it with the User in person.</small></p>
+    <button type="submit">Create user</button>
+    <a href="{{ path_for('users') }}">Back to users</a>
+  </form>
+{% endblock %}

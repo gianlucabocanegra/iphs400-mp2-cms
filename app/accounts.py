@@ -29,6 +29,52 @@ def create_user(conn: sqlite3.Connection, *, name: str, email: str,
     conn.commit()
 
 
+ROLES = ("admin", "editor")
+MIN_PASSWORD_LENGTH = 8
+
+
+class UserError(ValueError):
+    """A User form the Admin can fix; the message says how."""
+
+
+def list_users(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+    return conn.execute("SELECT * FROM users ORDER BY name COLLATE NOCASE, id").fetchall()
+
+
+def add_user(conn: sqlite3.Connection, *, name: str, email: str, password: str,
+             role: str) -> None:
+    """Create a User from console input, or raise UserError."""
+    name, email = name.strip(), email.strip()
+    if not name:
+        raise UserError("The name is required.")
+    if "@" not in email or email.startswith("@") or email.endswith("@"):
+        raise UserError("Enter a valid email address.")
+    if role not in ROLES:
+        raise UserError("The role must be Admin or Editor.")
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise UserError(f"The password needs at least {MIN_PASSWORD_LENGTH} characters.")
+    if conn.execute("SELECT 1 FROM users WHERE email = ?", (email,)).fetchone():
+        raise UserError("That email is already used by another User.")
+    try:
+        create_user(conn, name=name, email=email, password=password, role=role)
+    except sqlite3.IntegrityError:  # a concurrent request took the email first
+        raise UserError("That email is already used by another User.") from None
+
+
+def change_role(conn: sqlite3.Connection, user_id: int, role: str) -> None:
+    if role not in ROLES:
+        raise UserError("The role must be Admin or Editor.")
+    conn.execute("UPDATE users SET role = ? WHERE id = ?", (role, user_id))
+    conn.commit()
+
+
+def set_user_active(conn: sqlite3.Connection, user_id: int, active: bool) -> None:
+    """Deactivate or reactivate by id. Deactivating also ends the User's sessions."""
+    conn.execute("UPDATE users SET active = ?, session_version = session_version + ? "
+                 "WHERE id = ?", (int(active), 0 if active else 1, user_id))
+    conn.commit()
+
+
 def authenticate(conn: sqlite3.Connection, email: str,
                  password: str) -> sqlite3.Row | None:
     """The active User with this email and password, else None (never says why)."""

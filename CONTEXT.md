@@ -23,6 +23,10 @@ _Avoid_: account, member (members are readers, not Users)
 A User who can no longer log in. Their content and authorship stay untouched. An Admin can't deactivate or demote themselves, so the club always has an Admin.
 _Avoid_: deleted, removed, banned
 
+**Reactivate** (Reactivar):
+Restoring a Deactivated User's access. Only an Admin can; their content and authorship were never touched.
+_Avoid_: undelete, restore
+
 **Member** (Socio):
 A club member or family member who reads the public site. Members never log in.
 _Avoid_: user, reader

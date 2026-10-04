@@ -1,0 +1,34 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>Users</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <p><a href="{{ path_for('new_user') }}">New user</a></p>
+  <table>
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <form method="post" action="{{ path_for('change_role', user_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+            <select name="role" aria-label="Role of {{ u.name }}">
+              <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+              <option value="editor" {% if u.role == 'editor' %}selected{% endif %}>Editor</option>
+            </select>
+            <button type="submit">Change role</button>
+          </form>
+        </td>
+        <td>{{ "Active" if u.active else "Deactivated" }}</td>
+        <td>
+          <form method="post" action="{{ path_for('deactivate' if u.active else 'reactivate', user_id=u.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+            <button type="submit">{{ "Deactivate" if u.active else "Reactivate" }}</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
