@@ -38,6 +38,13 @@ CREATE TABLE IF NOT EXISTS exports (
     id     INTEGER PRIMARY KEY,
     ran_at TEXT NOT NULL
 );
+
+-- One row per Post that had been Published and was then deleted. Counted as a
+-- change not yet Live until the next Export.
+CREATE TABLE IF NOT EXISTS deleted_published (
+    id         INTEGER PRIMARY KEY,
+    deleted_at TEXT NOT NULL
+);
 """
 
 

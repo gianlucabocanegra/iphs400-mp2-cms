@@ -1,0 +1,6 @@
+  <article>
+    {% if event_label %}<p><strong>{{ event_label }}</strong></p>{% endif %}
+    <p><small>{{ kind_label }}{% if date_label %} · {{ date_label }}{% endif %}</small></p>
+    <h1>{{ post.title }}</h1>
+    {{ body_html | safe }}
+  </article>

@@ -99,19 +99,33 @@ def create_post(conn: sqlite3.Connection, *, kind: str, title: str, slug: str,
     return cur.lastrowid
 
 
-def update_post(conn: sqlite3.Connection, post: sqlite3.Row, *, title: str,
-                slug: str, body_md: str, event_start_date: str = "",
-                event_start_time: str = "", event_end_date: str = "") -> None:
-    """Kind and Author never change. The Slug is locked once first published."""
+def clean_update(conn: sqlite3.Connection, post: sqlite3.Row, *, title: str,
+                 slug: str, event_start_date: str = "", event_start_time: str = "",
+                 event_end_date: str = "") -> dict:
+    """The editable values as they would be stored, or a PostError. Changes nothing.
+
+    Kind and Author never change. The Slug is locked once first published.
+    """
     title = _clean_title(title)
     event = _clean_event(post["kind"], event_start_date, event_start_time, event_end_date)
     if post["first_published_at"]:
         slug = post["slug"]
     else:
         slug = _slug_for(conn, post["kind"], title, slug or post["slug"], post["id"])
+    return {"title": title, "slug": slug, "event_start_date": event[0],
+            "event_start_time": event[1], "event_end_date": event[2]}
+
+
+def update_post(conn: sqlite3.Connection, post: sqlite3.Row, *, title: str,
+                slug: str, body_md: str, event_start_date: str = "",
+                event_start_time: str = "", event_end_date: str = "") -> None:
+    v = clean_update(conn, post, title=title, slug=slug, event_start_date=event_start_date,
+                     event_start_time=event_start_time, event_end_date=event_end_date)
     conn.execute("UPDATE posts SET title = ?, slug = ?, body_md = ?, updated_at = ?, "
                  "event_start_date = ?, event_start_time = ?, event_end_date = ? "
-                 "WHERE id = ?", (title, slug, body_md, utc_now(), *event, post["id"]))
+                 "WHERE id = ?",
+                 (v["title"], v["slug"], body_md, utc_now(), v["event_start_date"],
+                  v["event_start_time"], v["event_end_date"], post["id"]))
     conn.commit()
 
 
@@ -140,6 +154,29 @@ def unpublish_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
     conn.execute("UPDATE posts SET status = 'draft', updated_at = ? WHERE id = ?",
                  (utc_now(), post["id"]))
     conn.commit()
+
+
+def delete_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
+    """Permanently remove a Post. A Published one is remembered, so the
+    not-yet-Live count includes it until the next Export."""
+    if post["status"] == "published":
+        conn.execute("INSERT INTO deleted_published (deleted_at) VALUES (?)", (utc_now(),))
+    conn.execute("DELETE FROM posts WHERE id = ?", (post["id"],))
+    conn.commit()
+
+
+def changes_not_live(conn: sqlite3.Connection) -> int:
+    """Changes Members can't see yet: Posts touched since the last Export, plus
+    Live Posts deleted since then. Before any Export, every Published Post counts."""
+    last = conn.execute("SELECT max(ran_at) FROM exports").fetchone()[0]
+    if last is None:
+        return conn.execute("SELECT count(*) FROM posts WHERE status = 'published'"
+                            ).fetchone()[0]
+    touched = conn.execute("SELECT count(*) FROM posts WHERE updated_at > ?",
+                           (last,)).fetchone()[0]
+    deleted = conn.execute("SELECT count(*) FROM deleted_published WHERE deleted_at > ?",
+                           (last,)).fetchone()[0]
+    return touched + deleted
 
 
 def published_posts(conn: sqlite3.Connection, kind: str | None = None,

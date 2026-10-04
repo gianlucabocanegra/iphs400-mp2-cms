@@ -9,7 +9,7 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from app import auth
+from app import auth, content
 from app.routes import posts
 from app.web import templates
 
@@ -18,14 +18,16 @@ router = APIRouter(prefix="/admin", dependencies=[Depends(auth.current_user)])
 router.include_router(posts.router)
 
 
-def page(request: Request, template: str, user: sqlite3.Row, title: str):
+def page(request: Request, template: str, user: sqlite3.Row, title: str, **ctx):
     return templates.TemplateResponse(request, template,
-                                      {"title": title, "user": user})
+                                      {"title": title, "user": user, **ctx})
 
 
 @router.get("")
-def dashboard(request: Request, user: sqlite3.Row = Depends(auth.current_user)):
-    return page(request, "admin/dashboard.html", user, "Dashboard")
+def dashboard(request: Request, user: sqlite3.Row = Depends(auth.current_user),
+              conn: sqlite3.Connection = Depends(auth.get_db)):
+    return page(request, "admin/dashboard.html", user, "Dashboard",
+                not_live=content.changes_not_live(conn))
 
 
 @router.get("/pages", dependencies=[Depends(auth.require_admin)])

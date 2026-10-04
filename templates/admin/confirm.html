@@ -1,0 +1,21 @@
+{% extends "admin/layout.html" %}
+{% block console %}
+  <h1>{{ title }}</h1>
+  <ul>{% for line in summary %}<li>{{ line }}</li>{% endfor %}</ul>
+  <form method="post" action="{{ path_for(action, post_id=post.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+    {% for name, value in pending.items() %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {% endfor %}
+    <button type="submit" name="confirm" value="confirm">{{ button }}</button>
+    <button type="submit" formaction="{{ path_for('back_to_editor', post_id=post.id) }}" name="cancel" value="cancel">Cancel</button>
+  </form>
+  {% if preview %}
+  <h2>Preview, as Members will see it</h2>
+  <div class="preview" lang="es">
+  {% with post=preview.post, event_label=preview.event_label, kind_label=preview.kind_label, date_label=preview.date_label, body_html=preview.body_html %}
+  {% include "public/_article.html" %}
+  {% endwith %}
+  </div>
+  {% endif %}
+{% endblock %}

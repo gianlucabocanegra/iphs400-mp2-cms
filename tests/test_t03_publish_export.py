@@ -1,4 +1,6 @@
 """T03: publish a Post, then Export it. Seam 1 (console) and Seam 2 (render_site)."""
+import html
+import re
 from datetime import date
 
 from app.publish import render_site
@@ -8,14 +10,29 @@ from tests.test_t02_posts import edit_post, save_post
 EXPORT_DAY = date(2026, 9, 29)
 
 
+def confirm(client, screen):
+    """Submit a Confirmation screen as the browser would: its hidden fields, confirm flag."""
+    form = re.search(r'<form method="post" action="([^"]+)"[^>]*>\s*'
+                     r'((?:<input type="hidden"[^>]*>\s*)+)<button[^>]*value="confirm"',
+                     screen.text)
+    assert form, "no confirm form on the page"
+    fields = {k: html.unescape(v) for k, v in
+              re.findall(r'name="([^"]+)" value="([^"]*)"', form.group(2))}
+    return client.post(form.group(1), data={**fields, "confirm": "1"},
+                       follow_redirects=False)
+
+
 def new_post(client, **kw):
     return save_post(client, **kw).headers["location"]
 
 
 def post_action(client, location, action):
+    """Ask for `action`, then give the Confirmation (T05). Returns the confirmed response."""
     token = csrf_from(client.get(location))
-    return client.post(f"{location}/{action}", data={"csrf_token": token},
-                       follow_redirects=False)
+    asked = client.post(f"{location}/{action}", data={"csrf_token": token},
+                        follow_redirects=False)
+    assert asked.status_code == 200, "expected a Confirmation screen"
+    return confirm(client, asked)
 
 
 def publish(client, **kw):
