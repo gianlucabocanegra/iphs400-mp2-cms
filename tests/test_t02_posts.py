@@ -57,8 +57,8 @@ def test_kind_cannot_be_changed_after_creation(client_as):
     location = save_post(editor, kind="news", title="Solo noticia").headers["location"]
     edit_post(editor, location, kind="menu", title="Solo noticia",
               slug="solo-noticia", body_md="cambio")
-    page = editor.get("/admin/posts").text
-    assert "News" in page and "Menu" not in page
+    rows = editor.get("/admin/posts").text.split("<tbody>")[1]  # the list, not the filters
+    assert "News" in rows and "Menu" not in rows
     assert 'name="kind"' not in editor.get(location).text
 
 

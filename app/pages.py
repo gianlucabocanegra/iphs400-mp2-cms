@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from app.content import PostError, _clean_title, slugify
+from app.content import STATUSES, PostError, _clean_title, slugify
 from app.timeutil import utc_now
 
 RESERVED_SLUGS = ("index", "noticias", "eventos", "menus", "style")
@@ -106,6 +106,14 @@ def list_pages(conn: sqlite3.Connection) -> list[sqlite3.Row]:
         "SELECT pages.*, users.name AS author_name FROM pages "
         "JOIN users ON users.id = pages.author_id").fetchall()
     return sorted(rows, key=_nav_key)
+
+
+def page_counts(conn: sqlite3.Connection) -> dict[str, int]:
+    """Pages per status, with 0 for an empty one."""
+    counts = dict.fromkeys(STATUSES, 0)
+    for row in conn.execute("SELECT status, count(*) AS n FROM pages GROUP BY status"):
+        counts[row["status"]] = row["n"]
+    return counts
 
 
 def publish_page(conn: sqlite3.Connection, page: sqlite3.Row) -> None:

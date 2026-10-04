@@ -133,11 +133,31 @@ def get_post(conn: sqlite3.Connection, post_id: int) -> sqlite3.Row | None:
     return conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
 
 
-def list_posts(conn: sqlite3.Connection) -> list[sqlite3.Row]:
-    return conn.execute(
-        "SELECT posts.*, users.name AS author_name FROM posts "
-        "JOIN users ON users.id = posts.author_id "
-        "ORDER BY posts.updated_at DESC, posts.id DESC").fetchall()
+STATUSES = ("draft", "published")
+
+
+def list_posts(conn: sqlite3.Connection, kind: str | None = None,
+               status: str | None = None) -> list[sqlite3.Row]:
+    """Posts, most recently updated first, optionally of one kind and/or status."""
+    sql = ("SELECT posts.*, users.name AS author_name FROM posts "
+           "JOIN users ON users.id = posts.author_id "
+           "WHERE (? IS NULL OR kind = ?) AND (? IS NULL OR status = ?) "
+           "ORDER BY posts.updated_at DESC, posts.id DESC")
+    return conn.execute(sql, (kind, kind, status, status)).fetchall()
+
+
+def post_counts(conn: sqlite3.Connection) -> dict[tuple[str, str], int]:
+    """Posts per (kind, status). Every combination is present, with 0 if empty."""
+    counts = {(k, s): 0 for k in KINDS for s in STATUSES}
+    for row in conn.execute("SELECT kind, status, count(*) AS n FROM posts "
+                            "GROUP BY kind, status"):
+        counts[(row["kind"], row["status"])] = row["n"]
+    return counts
+
+
+def last_export(conn: sqlite3.Connection) -> str | None:
+    """When the last Export ran (UTC), or None if there has never been one."""
+    return conn.execute("SELECT max(ran_at) FROM exports").fetchone()[0]
 
 
 def publish_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
@@ -168,7 +188,7 @@ def delete_post(conn: sqlite3.Connection, post: sqlite3.Row) -> None:
 def changes_not_live(conn: sqlite3.Connection) -> int:
     """Changes Members can't see yet: Posts and Pages touched since the last Export, plus
     Live ones deleted since then. Before any Export, every Published item counts."""
-    last = conn.execute("SELECT max(ran_at) FROM exports").fetchone()[0]
+    last = last_export(conn)
     if last is None:
         return sum(conn.execute(f"SELECT count(*) FROM {table} WHERE status = 'published'"
                                 ).fetchone()[0] for table in ("posts", "pages"))

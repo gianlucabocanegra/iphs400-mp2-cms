@@ -10,6 +10,7 @@ import sqlite3
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app import auth, content
+from app import pages as page_store
 from app.routes import pages, posts, users
 from app.web import templates
 
@@ -28,8 +29,13 @@ def page(request: Request, template: str, user: sqlite3.Row, title: str, **ctx):
 @router.get("")
 def dashboard(request: Request, user: sqlite3.Row = Depends(auth.current_user),
               conn: sqlite3.Connection = Depends(auth.get_db)):
+    counts = content.post_counts(conn)
     return page(request, "admin/dashboard.html", user, "Dashboard",
-                not_live=content.changes_not_live(conn))
+                not_live=content.changes_not_live(conn),
+                last_export=content.last_export(conn),
+                kinds=content.KINDS, statuses=content.STATUSES,
+                kind_labels=posts.KIND_LABELS, post_counts=counts,
+                page_counts=page_store.page_counts(conn) if user["role"] == "admin" else None)
 
 
 @router.get("/{path:path}")

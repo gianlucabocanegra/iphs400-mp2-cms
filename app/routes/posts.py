@@ -93,12 +93,28 @@ def confirmation(request: Request, user: sqlite3.Row, post: sqlite3.Row, *, acti
 
 
 @router.get("")
-def post_list(request: Request, user: sqlite3.Row = Depends(auth.current_user),
+def post_list(request: Request, kind: str = "", status: str = "",
+              user: sqlite3.Row = Depends(auth.current_user),
               conn: sqlite3.Connection = Depends(auth.get_db)):
+    """The list, filtered by kind and status. Unknown filter values are ignored.
+
+    Every filter is offered with the count it would show, so one that matches
+    nothing still appears, as 0.
+    """
+    kind = kind if kind in content.KINDS else ""
+    status = status if status in content.STATUSES else ""
+    counts = content.post_counts(conn)
+    kind_counts = {k: sum(n for (ck, cs), n in counts.items()
+                          if ck == k and status in ("", cs)) for k in content.KINDS}
+    status_counts = {s: sum(n for (ck, cs), n in counts.items()
+                            if cs == s and kind in ("", ck)) for s in content.STATUSES}
     return templates.TemplateResponse(
         request, "admin/post_list.html",
-        {"title": "Posts", "user": user, "posts": content.list_posts(conn),
-         "kind_labels": KIND_LABELS})
+        {"title": "Posts", "user": user,
+         "posts": content.list_posts(conn, kind or None, status or None),
+         "kind_labels": KIND_LABELS, "kind": kind, "status": status,
+         "kind_counts": kind_counts, "status_counts": status_counts,
+         "kind_total": sum(kind_counts.values()), "status_total": sum(status_counts.values())})
 
 
 @router.get("/new")

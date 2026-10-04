@@ -2,6 +2,18 @@
 {% block console %}
   <h1>Posts</h1>
   <p><a href="{{ path_for('new_post') }}">New post</a></p>
+  <p>Kind:
+    <a href="{{ path_for('post_list') }}?status={{ status }}">All ({{ kind_total }})</a>
+    {% for k, label in kind_labels.items() %}
+      <a href="{{ path_for('post_list') }}?kind={{ k }}&status={{ status }}"{% if k == kind %} aria-current="true"{% endif %}>{{ label }} ({{ kind_counts[k] }})</a>
+    {% endfor %}
+  </p>
+  <p>Status:
+    <a href="{{ path_for('post_list') }}?kind={{ kind }}">All ({{ status_total }})</a>
+    {% for s, n in status_counts.items() %}
+      <a href="{{ path_for('post_list') }}?kind={{ kind }}&status={{ s }}"{% if s == status %} aria-current="true"{% endif %}>{{ s | capitalize }} ({{ n }})</a>
+    {% endfor %}
+  </p>
   {% if posts %}
   <table>
     <thead><tr><th>Title</th><th>Kind</th><th>Status</th><th>Author</th><th>Last updated (Lima)</th></tr></thead>
@@ -18,6 +30,6 @@
     </tbody>
   </table>
   {% else %}
-    <p>No posts yet.</p>
+    <p>No posts match.</p>
   {% endif %}
 {% endblock %}

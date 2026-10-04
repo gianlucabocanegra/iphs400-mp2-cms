@@ -3,4 +3,30 @@
   <h1>Dashboard</h1>
   <p>Signed in as {{ user.name }} ({{ user.role }}).</p>
   <p>Changes not yet Live: {{ not_live }}</p>
+  <p>Last Export: {{ (last_export | lima) if last_export else "never" }}</p>
+
+  <h2>Posts</h2>
+  <table>
+    <thead><tr><th>Kind</th>{% for s in statuses %}<th>{{ s | capitalize }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for k in kinds %}
+      <tr>
+        <td>{{ kind_labels[k] }}</td>
+        {% for s in statuses %}
+          <td data-count="{{ k }}-{{ s }}">{{ post_counts[(k, s)] }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_counts %}
+  <h2>Pages</h2>
+  <table>
+    <thead><tr>{% for s in statuses %}<th>{{ s | capitalize }}</th>{% endfor %}</tr></thead>
+    <tbody><tr>
+      {% for s in statuses %}<td data-count="page-{{ s }}">{{ page_counts[s] }}</td>{% endfor %}
+    </tr></tbody>
+  </table>
+  {% endif %}
 {% endblock %}

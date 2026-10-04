@@ -5,7 +5,8 @@
 
 Creates one Admin (admin@example.test) and one Editor (editor@example.test),
 with passwords read from CMS_ADMIN_PASSWORD / CMS_EDITOR_PASSWORD, never
-hard-coded. Safe to run twice. T08 adds demo content.
+hard-coded, then adds demo content (a Draft and a Published item of every kind).
+Safe to run twice.
 """
 from __future__ import annotations
 
@@ -17,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import settings  # noqa: E402
 from app.accounts import seed_users  # noqa: E402
+from app.demo import seed_content  # noqa: E402
 
 
 def main() -> int:
@@ -29,7 +31,8 @@ def main() -> int:
 
     database = Path(os.environ.get("CMS_DATABASE", settings.DATABASE_PATH))
     seed_users(database, admin_password=admin_pw, editor_password=editor_pw)
-    print(f"Seeded the Admin and Editor in {database}.")
+    seed_content(database)
+    print(f"Seeded the Admin, the Editor and demo content in {database}.")
     return 0
 
 
