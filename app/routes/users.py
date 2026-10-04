@@ -64,6 +64,7 @@ def create_user(request: Request, name: str = Form(""), email: str = Form(""),
             request, "admin/user_form.html",
             {"title": "New user", "user": user, "error": str(exc),
              "form": {"name": name, "email": email, "role": role}}, status_code=422)
+    auth.flash(request, "User created.")
     return RedirectResponse(request.app.url_path_for("users"), status_code=303)
 
 
@@ -78,6 +79,7 @@ def change_role(request: Request, user_id: int, role: str = Form(""),
         accounts.change_role(conn, user_id, role)
     except accounts.UserError as exc:
         return user_list(request, user, conn, error=str(exc), status_code=422)
+    auth.flash(request, "Role updated.")
     return RedirectResponse(request.app.url_path_for("users"), status_code=303)
 
 
@@ -91,6 +93,7 @@ def deactivate(request: Request, user_id: int,
     except accounts.UserError as exc:
         return user_list(request, user, conn, error=str(exc), status_code=422)
     accounts.set_user_active(conn, user_id, False)
+    auth.flash(request, "User deactivated.")
     return RedirectResponse(request.app.url_path_for("users"), status_code=303)
 
 
@@ -100,4 +103,5 @@ def reactivate(request: Request, user_id: int,
                conn: sqlite3.Connection = Depends(auth.get_db)):
     load(conn, user_id)
     accounts.set_user_active(conn, user_id, True)
+    auth.flash(request, "User reactivated.")
     return RedirectResponse(request.app.url_path_for("users"), status_code=303)

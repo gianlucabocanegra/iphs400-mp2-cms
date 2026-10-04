@@ -6,7 +6,7 @@
   <p>Last Export: {{ (last_export | lima) if last_export else "never" }}</p>
 
   <h2>Posts</h2>
-  <table>
+  <div class="scroll"><table>
     <thead><tr><th>Kind</th>{% for s in statuses %}<th>{{ s | capitalize }}</th>{% endfor %}</tr></thead>
     <tbody>
     {% for k in kinds %}
@@ -18,15 +18,15 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 
   {% if page_counts %}
   <h2>Pages</h2>
-  <table>
+  <div class="scroll"><table>
     <thead><tr>{% for s in statuses %}<th>{{ s | capitalize }}</th>{% endfor %}</tr></thead>
     <tbody><tr>
       {% for s in statuses %}<td data-count="page-{{ s }}">{{ page_counts[s] }}</td>{% endfor %}
     </tr></tbody>
-  </table>
+  </table></div>
   {% endif %}
 {% endblock %}

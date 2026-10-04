@@ -29,3 +29,11 @@ def test_only_matching_quotes_are_stripped(tmp_path, monkeypatch):
 
 def test_missing_dotenv_is_fine(tmp_path):
     settings.load_dotenv(tmp_path / "absent.env")
+
+
+def test_env_example_sets_the_clubs_name_as_the_site_title():
+    """T08: CMS_SITE_TITLE in .env.example is the club's name."""
+    example = (settings.ROOT / ".env.example").read_text(encoding="utf-8")
+    title = [line.partition("=")[2] for line in example.splitlines()
+             if line.startswith("CMS_SITE_TITLE=")]
+    assert title == ["Golf & Country Club of Trujillo"]

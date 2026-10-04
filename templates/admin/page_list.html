@@ -3,7 +3,7 @@
   <h1>Pages</h1>
   <p><a href="{{ path_for('new_page') }}">New page</a></p>
   {% if pages %}
-  <table>
+  <div class="scroll"><table>
     <thead><tr><th>Title</th><th>Status</th><th>Nav order</th><th>Author</th><th>Last updated (Lima)</th></tr></thead>
     <tbody>
     {% for p in pages %}
@@ -16,7 +16,7 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
     <p>No pages yet.</p>
   {% endif %}

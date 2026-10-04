@@ -12,5 +12,8 @@
       <button type="submit">Sign out</button>
     </form>
   </nav>
+  {% for message in pop_flash(request) %}
+    <p role="status" class="flash">{{ message }}</p>
+  {% endfor %}
   {% block console %}{% endblock %}
 {% endblock %}

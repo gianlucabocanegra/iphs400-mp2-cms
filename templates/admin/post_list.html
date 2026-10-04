@@ -15,7 +15,7 @@
     {% endfor %}
   </p>
   {% if posts %}
-  <table>
+  <div class="scroll"><table>
     <thead><tr><th>Title</th><th>Kind</th><th>Status</th><th>Author</th><th>Last updated (Lima)</th></tr></thead>
     <tbody>
     {% for p in posts %}
@@ -28,7 +28,7 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
     <p>No posts match.</p>
   {% endif %}

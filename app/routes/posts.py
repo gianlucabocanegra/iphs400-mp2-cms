@@ -140,6 +140,7 @@ def create_post(request: Request, kind: str = Form(""), title: str = Form(""),
         return form_page(request, user, {"kind": kind, "title": title,
                                          "slug": slug, "body_md": body_md, **event},
                          error=str(exc), status_code=422)
+    auth.flash(request, "Post created as a Draft.")
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
 
@@ -175,6 +176,7 @@ def save_post(request: Request, post_id: int, confirm: str = Form(""),
         content.update_post(conn, post, **values)
     except content.PostError as exc:
         return editor_page(request, user, post, values, str(exc))
+    auth.flash(request, "Post saved.")
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
 
@@ -210,6 +212,7 @@ def publish_post(request: Request, post_id: int, confirm: str = Form(""),
     except content.PostError as exc:
         return editor_page(request, user, post, values, str(exc))
     content.publish_post(conn, post)
+    auth.flash(request, "Post published. It reaches the public site at the next Export.")
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
 
@@ -227,6 +230,7 @@ def unpublish_post(request: Request, post_id: int, confirm: str = Form(""),
                      "from the public site at the next Export. Unsaved edits in the "
                      "editor are not saved."])
     content.unpublish_post(conn, post)
+    auth.flash(request, "Post unpublished. It is a Draft again.")
     return RedirectResponse(f"/admin/posts/{post_id}", status_code=303)
 
 
@@ -245,6 +249,7 @@ def delete_post(request: Request, post_id: int, confirm: str = Form(""),
             + (["It leaves the public site at the next Export."]
                if post["first_published_at"] else []))
     content.delete_post(conn, post)
+    auth.flash(request, "Post deleted.")
     return RedirectResponse(request.app.url_path_for("post_list"), status_code=303)
 
 

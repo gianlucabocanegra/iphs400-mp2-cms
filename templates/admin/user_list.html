@@ -3,7 +3,7 @@
   <h1>Users</h1>
   {% if error %}<p role="alert">{{ error }}</p>{% endif %}
   <p><a href="{{ path_for('new_user') }}">New user</a></p>
-  <table>
+  <div class="scroll"><table>
     <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
     {% for u in users %}
@@ -30,5 +30,5 @@
       </tr>
     {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 {% endblock %}

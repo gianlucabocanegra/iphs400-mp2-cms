@@ -53,6 +53,16 @@ async def csrf_protect(request: Request) -> None:
         raise HTTPException(403, "Invalid or missing CSRF token.")
 
 
+def flash(request: Request, message: str) -> None:
+    """Queue a one-time message for the next console page the User sees."""
+    request.session["flash"] = [*request.session.get("flash", []), message]
+
+
+def pop_flash(request: Request) -> list[str]:
+    """The queued messages, removed so they show once."""
+    return request.session.pop("flash", [])
+
+
 def sign_in(request: Request, user: sqlite3.Row) -> None:
     # Fresh session and token on login, so nothing set before it carries over.
     request.session.clear()

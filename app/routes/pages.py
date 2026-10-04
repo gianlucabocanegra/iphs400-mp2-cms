@@ -104,6 +104,7 @@ def create_page(request: Request, title: str = Form(""), slug: str = Form(""),
         page_id = store.create_page(conn, author_id=user["id"], **values)
     except store.PostError as exc:
         return form_page(request, user, values, error=str(exc), status_code=422)
+    auth.flash(request, "Page created as a Draft.")
     return RedirectResponse(f"/admin/pages/{page_id}", status_code=303)
 
 
@@ -133,6 +134,7 @@ def save_page(request: Request, page_id: int, confirm: str = Form(""),
         store.update_page(conn, page, **values)
     except store.PostError as exc:
         return editor_page(request, user, page, values, str(exc))
+    auth.flash(request, "Page saved.")
     return RedirectResponse(f"/admin/pages/{page_id}", status_code=303)
 
 
@@ -167,6 +169,7 @@ def publish_page(request: Request, page_id: int, confirm: str = Form(""),
     except store.PostError as exc:
         return editor_page(request, user, page, values, str(exc))
     store.publish_page(conn, page)
+    auth.flash(request, "Page published. It reaches the public site at the next Export.")
     return RedirectResponse(f"/admin/pages/{page_id}", status_code=303)
 
 
@@ -184,6 +187,7 @@ def unpublish_page(request: Request, page_id: int, confirm: str = Form(""),
                      "from the public site and its Navigation at the next Export. "
                      "Unsaved edits in the editor are not saved."])
     store.unpublish_page(conn, page)
+    auth.flash(request, "Page unpublished. It is a Draft again.")
     return RedirectResponse(f"/admin/pages/{page_id}", status_code=303)
 
 
@@ -202,6 +206,7 @@ def delete_page(request: Request, page_id: int, confirm: str = Form(""),
             + (["It leaves the public site at the next Export."]
                if page["status"] == "published" else []))
     store.delete_page(conn, page)
+    auth.flash(request, "Page deleted.")
     return RedirectResponse(request.app.url_path_for("page_list"), status_code=303)
 
 
