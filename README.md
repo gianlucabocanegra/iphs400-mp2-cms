@@ -58,6 +58,26 @@ Run `uv run python scripts/check_submission.py --stage 2` before you submit.
 
 ## Generative AI Use Statement
 
-*(Required. Replace this section: name the models and skills you used, quote two
-prompts you really sent, describe one real model failure, and include a
-"Backends used" table if you ever switched providers.)*
+I built this project with Claude Code, using the Pocock skills (grill-with-docs, to-spec, to-tickets, implement, code-review). I also used a Claude chat on claude.ai to plan my steps, check the code against the grading rubric, and draft the report, which I then edited. All the code, tests and the report are mine to answer for, and I ran and checked everything before committing.
+
+**Two prompts I used (quoted exactly):**
+
+1. "Fix these four, with tests, and don't commit: F3 phone-width overflow at 390px, F4 a visible success message after every save, E2 a test that .env.example sets CMS_SITE_TITLE to the club's name, and H2 rename the transcripts from your-name to gianluca-bocanegra."
+2. "Audit these against the code and report pass/fail for each. Don't fix anything yet. SECRET_KEY: does settings.py fall back to a public default? Is there a test where an Editor gets 403 on every admin-only route? Does every state-changing form have a CSRF token? Give me a table."
+
+**Where the AI got it wrong:**
+
+- The AI wrote a SECRET_KEY in settings.py that fell back to a public default string. Anyone who knew it could forge a login cookie. The audit prompt above caught it, and I made the app refuse to start without a real key.
+- Anonymous POSTs to admin pages got a 403 instead of a redirect to login, because the CSRF check ran first. A test I added found it.
+- The admin pages past /admin had no CSS, because the AI used a relative stylesheet link. I only saw it when I looked at the pages at phone width.
+- The first two exercises had no red-green steps. I started Claude Code from my home folder, so /tdd and /grill-with-docs weren't found. Skills only load from inside the project folder.
+
+**Backends used**
+
+| Backend | Model | Used for |
+|---|---|---|
+| Anthropic (Claude Code) | Opus 5.5 | grill, spec, tickets |
+| Anthropic (Claude Code) | Sonnet 5.5 | implement, code review, fixes, screenshots |
+| Anthropic (claude.ai chat) | Sonnet 5.5 | step-by-step guidance, rubric self-check, report draft |
+
+No other AI provider was used.
