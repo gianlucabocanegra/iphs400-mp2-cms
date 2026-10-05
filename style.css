@@ -1,10 +1,81 @@
-/* Minimal starter styles — make them yours. */
-:root { color-scheme: light dark; }
-body { font: 16px/1.6 system-ui, sans-serif; margin: 0 auto; max-width: 42rem; padding: 1rem; }
-header a { font-weight: 700; text-decoration: none; }
-main { margin-block: 2rem; }
+/* Club styles: system fonts only, relative paths only. */
+:root {
+  --green: #1f4d36; --green-deep: #173a29; --green-soft: #2f6b4b;
+  --cream: #f8f3e6; --paper: #fffdf7; --ink: #25231d; --muted: #5f5a4c;
+  --gutter: max(1rem, calc((100% - 44rem) / 2));
+}
+* { box-sizing: border-box; }
+html { background: var(--cream); }
+body { margin: 0; background: var(--cream); color: var(--ink);
+  font: 17px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-wrap: break-word; }
+
+/* Header band */
+header { background: var(--green); color: var(--cream);
+  padding: 1.5rem var(--gutter) 0; border-bottom: 4px solid #b89b52; }
+header > a { display: block; color: var(--cream); text-decoration: none;
+  font: 700 clamp(1.5rem, 5vw, 2.1rem)/1.2 Georgia, "Times New Roman", serif;
+  letter-spacing: .01em; }
+nav { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin: 1rem 0 0; }
+header nav a { color: var(--cream); text-decoration: none; padding: .5rem 0 .4rem;
+  border-bottom: 3px solid transparent; font-size: .95rem; }
+header nav a:hover, header nav a:focus-visible,
+header nav a[aria-current="page"] { border-bottom-color: #e3c97a; }
+
+/* Page */
+main { padding: 0 var(--gutter); margin-block: 2rem 3rem; }
+h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; color: var(--green-deep);
+  line-height: 1.25; margin: 0 0 .6rem; }
+h1 { font-size: 1.7rem; } h2 { font-size: 1.3rem; } h3 { font-size: 1.1rem; }
+p, ul, ol { margin: 0 0 1rem; }
+a { color: var(--green); text-underline-offset: .15em; }
+a:hover { color: var(--green-deep); text-decoration-thickness: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid #b89b52; outline-offset: 2px; }
+small { color: var(--muted); font-size: .88rem; }
+article > p:first-child strong { color: var(--green); }
+
+/* Soft cards */
+main > section { background: var(--paper); border: 1px solid var(--green-soft);
+  border-radius: .6rem; padding: 1.1rem 1.4rem 1.2rem; margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(31, 77, 54, .08); }
+main > section > :last-child { margin-bottom: 0; }
+main > section ul { list-style: none; padding: 0; }
+main > section li { padding: .55rem 0; border-top: 1px solid #e6dfca; }
+main > section li:first-child { border-top: 0; }
+main > section li small { display: block; }
+main > section li strong { color: var(--muted); font-weight: 600; margin-right: .4rem; }
+article ul, article ol { padding-left: 1.4rem; }
+article li { margin-bottom: .3rem; }
+
+/* Footer */
+footer { border-top: 1px solid #d9d0b6; padding: 1.25rem var(--gutter) 2rem;
+  color: var(--muted); text-align: center; }
+
+/* Admin console (shares this sheet): nav, tables, forms. */
+main > nav { align-items: center; margin: 0 0 1.5rem; padding-bottom: .75rem;
+  border-bottom: 1px solid #d9d0b6; }
+main > nav form { margin: 0; }
+.scroll { margin-bottom: 1.5rem; }
+table { border-collapse: collapse; min-width: 30rem; width: 100%; background: var(--paper); }
+th, td { text-align: left; padding: .55rem .75rem; border-bottom: 1px solid #e6dfca;
+  vertical-align: top; }
+th { color: var(--green-deep); border-bottom: 2px solid var(--green-soft); white-space: nowrap; }
+label { display: block; margin-bottom: 1rem; }
+input:not([type=hidden]):not([type=checkbox]):not([type=radio]), select, textarea {
+  display: block; width: 100%; margin-top: .25rem; padding: .5rem .6rem; font: inherit;
+  background: #fff; color: var(--ink); border: 1px solid #8a8670; border-radius: .3rem; }
+button { font: inherit; font-size: .95rem; padding: .45rem .9rem; cursor: pointer;
+  color: var(--cream); background: var(--green); border: 1px solid var(--green-deep);
+  border-radius: .3rem; }
+button:hover { background: var(--green-deep); }
+
 /* Phone width: nothing may push the page wider than the screen. */
 img, input, select, textarea { max-width: 100%; }
-textarea { width: 100%; box-sizing: border-box; }
+img { height: auto; }
+pre { overflow-x: auto; }
 .scroll { overflow-x: auto; }
 .flash { border: 1px solid; border-radius: .25rem; padding: .5rem .75rem; }
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  main > section { padding: 1rem; }
+}
